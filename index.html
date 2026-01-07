@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wedding Invitation Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Caveat:wght@400;500;600;700&family=Comic+Neue:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Cormorant+Garamond:wght@300;400;500;600&family=Great+Vibes&family=Handlee&family=Just+Another+Hand&family=Patrick+Hand&family=Patrick+Hand+SC&family=Playfair+Display:wght@400;500;600&family=Solitreo&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        @font-face {
+            font-family: 'UTM Americana';
+            src: url('Fonts/UTM Americana.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Cormorant';
+            src: url('Fonts/Cormorant-Regular.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Cormorant';
+            src: url('Fonts/Cormorant-Italic.ttf') format('truetype');
+            font-weight: 400;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: 'Cormorant';
+            src: url('Fonts/Cormorant-SemiBoldItalic.ttf') format('truetype');
+            font-weight: 600;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: 'Cormorant Light Italic';
+            src: url('Fonts/Cormorant-LightItalic.ttf') format('truetype');
+            font-weight: 300;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: 'Cormorant';
+            src: url('Fonts/Cormorant-SemiBold.ttf') format('truetype');
+            font-weight: 600;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Cormorant';
+            src: url('Fonts/Cormorant-Bold.ttf') format('truetype');
+            font-weight: 700;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Milton One';
+            src: url('Fonts/Milton_One_Bold.otf') format('opentype');
+            font-weight: bolder;
+            font-style: normal;
+            unicode-range: U+0000-00FF, U+0100-017F, U+1E00-1EFF, U+0300-036F, U+1EA0-1EFF;
+            font-display: swap;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cormorant', 'Georgia', serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .upload-section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .upload-section h1 {
+            color: #8b9dc3;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .upload-area {
+            border: 2px dashed #8b9dc3;
+            padding: 40px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-area:hover {
+            border-color: #6b7da3;
+            background: #f9f9f9;
+        }
+
+        .upload-area input {
+            display: none;
+        }
+
+        .btn {
+            background: #8b9dc3;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 15px;
+        }
+
+        .btn:hover {
+            background: #6b7da3;
+        }
+
+        .invitations-container {
+            display: grid;
+            gap: 30px;
+        }
+
+        .invitation-wrapper {
+            position: relative;
+            margin: 0 auto;
+        }
+
+        .save-btn-container {
+            text-align: center;
+            margin-top: 15px;
+            margin-bottom: 20px;
+        }
+
+        .save-image-btn {
+            background: #4caf50;
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .save-image-btn:hover {
+            background: #45a049;
+        }
+
+        .invitation {
+            background: white;
+            width: 1360px;
+            height: 960px;
+            margin: 0 auto;
+            padding: 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            page-break-after: always;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .invitation-photo-container {
+            width: 680px;
+            height: 960px;
+            padding: 40px;
+            box-sizing: border-box;
+            flex-shrink: 0;
+            border-right: 1px solid rgba(196, 181, 160, 0.3);
+            background: white;
+        }
+
+        .invitation-photo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center 35%;
+        }
+
+        .invitation-content {
+            width: 680px;
+            padding: 40px 60px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: white;
+        }
+
+        .monogram {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .monogram img {
+            width: 150px;
+            height: auto;
+            display: inline-block;
+        }
+
+        .header-text {
+            text-align: center;
+            color: #7a6f5d;
+            font-size: 14px;
+            letter-spacing: 4px;
+            margin-bottom: 15px;
+            font-weight: 400;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .guest-name {
+            text-align: center;
+            color: #5a4f3d;
+            font-size: 28px;
+            font-weight: 400;
+            font-family: 'Patrick Hand', cursive;
+            letter-spacing: 0.5px;
+        }
+
+        .divider {
+            width: 100%;
+            max-width: 500px;
+            margin: 0px auto 25px auto;
+            border: none;
+            border-top: 1px dashed #c4b5a0;
+            height: 1px;
+        }
+
+        .invitation-text {
+            text-align: center;
+            color: #7a6f5d;
+            font-size: 12px;
+            line-height: 1;
+            margin-bottom: 8px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            font-family: 'UTM Americana', 'Cormorant', serif;
+        }
+
+        .couple-names {
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .bride-name, .groom-name {
+            font-size: 42px;
+            color: #8b9dc3;
+            line-height: 1.2;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .name-capital {
+            font-family: 'Milton One', serif;
+            font-weight: 700;
+            font-style: normal;
+            font-size: 1.4em;
+            display: inline-block;
+            vertical-align: baseline;
+            letter-spacing: 0.1rem;
+        }
+
+        .name-lowercase {
+            font-family: 'Great Vibes', cursive;
+            font-weight: 600;
+            font-style: italic;
+            -webkit-font-smoothing: antialiased;
+            opacity: 1;
+            letter-spacing: 0.2rem;
+        }
+
+        .ampersand {
+            font-family: 'Milton One', 'Brush Script MT', cursive;
+            font-size: 45px;
+            color: #8b9dc3;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .ampersand::before,
+        .ampersand::after {
+            content: '';
+            width: 80px;
+            height: 1px;
+            background: rgba(139, 157, 195, 0.4);
+        }
+
+        .date-section {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .date-header {
+            color: #7a6f5d;
+            font-size: 13px;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            font-family: 'UTM Americana', 'Cormorant', serif;
+        }
+
+        .date-grid {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 45px;
+            margin: 15px 0;
+        }
+
+        .date-item {
+            text-align: center;
+            position: relative;
+        }
+
+        .date-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: -23px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2px;
+            height: 50px;
+            background: black
+        }
+
+        .date-label {
+            color: #7a6f5d;
+            font-size: 13px;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+            font-family: 'UTM Americana', serif;
+            text-transform: uppercase;
+        }
+
+        .date-value {
+            color: #5a4f3d;
+            font-size: 32px;
+            font-weight: 400;
+            font-family: 'UTM Americana', 'Cormorant', serif;
+            line-height: 1;
+        }
+
+        .date-subtext {
+            color: #7a6f5d;
+            font-size: 11px;
+            letter-spacing: 2px;
+            margin-top: 15px;
+            font-family: 'UTM Americana', 'Cormorant', serif;
+        }
+
+        .venue-section {
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .venue-label {
+            color: #7a6f5d;
+            font-size: 13px;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            font-family: 'UTM Americana', 'Cormorant', serif;
+        }
+
+        .venue-name {
+            color: #5a4f3d;
+            font-size: 20px;
+            letter-spacing: 4px;
+            margin: 8px 0;
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+        }
+
+        .venue-address {
+            color: #7a6f5d;
+            font-size: 13px;
+            letter-spacing: 1px;
+            font-family: 'UTM Americana', 'Cormorant', serif;
+        }
+
+        .parents-section {
+            display: flex;
+            justify-content: space-between;
+            margin: 18px 0;
+            text-align: center;
+        }
+
+        .parent-group {
+            flex: 1;
+        }
+
+        .parent-label {
+            font-size: 13px;
+            font-weight: bolder;
+            letter-spacing: 3px;
+            margin-bottom: 8px;
+            font-family: 'UTM Americana', 'Cormorant', serif;
+            text-transform: uppercase;
+        }
+
+        .parent-name {
+            color: #333;
+            font-size: 13px;
+            letter-spacing: 0px;
+            line-height: 1.8;
+            font-weight: 600;
+            font-family: 'UTM Americana', 'Cormorant', serif;
+        }
+
+        .footer-text {
+            text-align: center;
+            color: #7a6f5d;
+            font-size: 12px;
+            letter-spacing: 2px;
+            margin-top: 20px;
+            font-family: 'UTM Americana', 'Cormorant', serif;
+        }
+
+        .controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .instruction {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            color: #1976d2;
+        }
+
+        .manual-entry {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .manual-entry h3 {
+            color: #8b9dc3;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .name-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .name-input-group input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #8b9dc3;
+            border-radius: 4px;
+            font-size: 16px;
+            font-family: 'Georgia', serif;
+        }
+
+        .name-input-group input:focus {
+            outline: none;
+            border-color: #6b7da3;
+        }
+
+        .guest-list {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .guest-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: white;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .guest-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .remove-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .remove-btn:hover {
+            background: #d32f2f;
+        }
+
+        .or-divider {
+            text-align: center;
+            margin: 20px 0;
+            color: #999;
+            position: relative;
+        }
+
+        .or-divider::before,
+        .or-divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 45%;
+            height: 1px;
+            background: #ddd;
+        }
+
+        .or-divider::before {
+            left: 0;
+        }
+
+        .or-divider::after {
+            right: 0;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .upload-section, .controls, .save-btn-container {
+                display: none;
+            }
+
+            .invitation {
+                box-shadow: none;
+                margin: 0;
+                page-break-after: always;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="upload-section">
+            <h1>Wedding Invitation Generator</h1>
+
+            <div class="instruction">
+                <strong>Instructions:</strong> Upload an Excel (.xlsx, .xls) or CSV file with guest names in the "Kính gửi" column, or manually enter guest names below.
+            </div>
+
+            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <p style="font-size: 48px; margin-bottom: 10px;">📄</p>
+                <p>Click to upload Excel or CSV file</p>
+                <input type="file" id="fileInput" accept=".xlsx, .xls, .csv">
+            </div>
+
+            <div class="or-divider">OR</div>
+
+            <div class="manual-entry">
+                <h3>Manually Add Guest Names</h3>
+                <div class="name-input-group">
+                    <input type="text" id="nameInput" placeholder="Enter guest name (e.g., Ông Bà Nguyễn Văn An)" onkeypress="handleKeyPress(event)">
+                    <button class="btn" onclick="addName()" style="margin-top: 0;">Add Name</button>
+                </div>
+                <div class="guest-list" id="guestList" style="display: none;">
+                    <!-- Guest names will appear here -->
+                </div>
+            </div>
+
+            <div style="text-align: center;">
+                <button class="btn" onclick="generateInvitations()">Generate Invitations</button>
+                <button class="btn" onclick="window.print()" style="margin-left: 10px; display: none;" id="printBtn">Print All Invitations</button>
+                <button class="btn" onclick="downloadAllPDFs()" style="margin-left: 10px; display: none; background: #4caf50;" id="downloadAllBtn">📥 Download All PDFs</button>
+            </div>
+
+            <div id="status" style="margin-top: 20px; text-align: center; color: #666;"></div>
+        </div>
+
+        <div class="invitations-container" id="invitationsContainer">
+            <!-- Invitations will be generated here -->
+        </div>
+    </div>
+
+    <script>
+        let guestNames = [];
+        let guestData = []; // Stores {employeeId, guestName} objects
+        let monogramBase64 = ''; // Stores monogram as base64 to avoid CORS issues
+
+        // Load monogram image as base64 on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            const img = new Image();
+            img.onload = function() {
+                try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    monogramBase64 = canvas.toDataURL('image/jpeg', 0.95);
+                    console.log('Monogram loaded successfully');
+                } catch (e) {
+                    console.error('Error converting monogram to base64:', e);
+                    monogramBase64 = '';
+                }
+            };
+            img.onerror = function(e) {
+                console.error('Failed to load monogram image:', e);
+                monogramBase64 = '';
+            };
+            // Try loading the image without CORS for local files
+            img.src = 'IMG_1984.JPG';
+        });
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            const fileName = file.name.toLowerCase();
+
+            if (fileName.endsWith('.csv')) {
+                // Handle CSV file
+                reader.onload = function(e) {
+                    try {
+                        const text = e.target.result;
+                        const lines = text.split('\n');
+
+                        // Extract guest names from first column, skip header if present
+                        guestNames = lines
+                            .map(line => line.split(',')[0].trim())
+                            .filter((name, index) => {
+                                // Skip header row if it looks like a header
+                                if (index === 0 && (name.toLowerCase() === 'guest name' || name.toLowerCase() === 'name')) {
+                                    return false;
+                                }
+                                return name && name.trim() !== '';
+                            });
+
+                        updateGuestList();
+                        document.getElementById('status').innerHTML =
+                            `✓ CSV file loaded successfully! Found ${guestNames.length} guest names.`;
+                        document.getElementById('status').style.color = '#4caf50';
+                    } catch (error) {
+                        document.getElementById('status').innerHTML =
+                            `✗ Error reading CSV file: ${error.message}`;
+                        document.getElementById('status').style.color = '#f44336';
+                    }
+                };
+                reader.readAsText(file);
+            } else {
+                // Handle Excel file
+                reader.onload = function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array', cellFormula: false, cellDates: true });
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: '' });
+
+                        if (jsonData.length === 0) {
+                            throw new Error('Excel file is empty');
+                        }
+
+                        // Find the "Kính gửi", "Mã nhân viên", and "Phòng ban" columns
+                        const headers = jsonData[0];
+                        let nameColumnIndex = -1;
+                        let employeeIdColumnIndex = -1;
+                        let departmentColumnIndex = -1;
+
+                        // Look for columns (case-insensitive)
+                        for (let i = 0; i < headers.length; i++) {
+                            const header = String(headers[i]).toLowerCase().trim();
+                            if (header === 'kính gửi' || header === 'kinh gui' ||
+                                (header.includes('kinh') && header.includes('gui'))) {
+                                nameColumnIndex = i;
+                            }
+                            if (header === 'mã nhân viên' || header === 'ma nhan vien' ||
+                                (header.includes('ma') && header.includes('nhan') && header.includes('vien'))) {
+                                employeeIdColumnIndex = i;
+                            }
+                            if (header === 'phòng ban' || header === 'phong ban' ||
+                                (header.includes('phong') && header.includes('ban'))) {
+                                departmentColumnIndex = i;
+                            }
+                        }
+
+                        // If not found, default to first column
+                        if (nameColumnIndex === -1) {
+                            nameColumnIndex = 0;
+                            console.warn('Could not find "Kính gửi" column, using first column');
+                        }
+                        if (employeeIdColumnIndex === -1) {
+                            employeeIdColumnIndex = 0;
+                            console.warn('Could not find "Mã nhân viên" column, using first column');
+                        }
+                        if (departmentColumnIndex === -1) {
+                            console.warn('Could not find "Phòng ban" column, PDFs will not be organized by department');
+                        }
+
+                        // Extract guest data with employee ID, name, and department, skip header row
+                        guestData = jsonData
+                            .slice(1)  // Skip header row
+                            .map(row => ({
+                                employeeId: row[employeeIdColumnIndex] || '',
+                                guestName: row[nameColumnIndex] || '',
+                                department: departmentColumnIndex !== -1 ? (row[departmentColumnIndex] || 'Other') : 'Other'
+                            }))
+                            .filter(guest => guest.guestName && guest.guestName.toString().trim() !== '');
+
+                        // For backward compatibility, also populate guestNames array
+                        guestNames = guestData.map(guest => guest.guestName);
+
+                        updateGuestList();
+                        document.getElementById('status').innerHTML =
+                            `✓ Excel file loaded successfully! Found ${guestNames.length} guest names.`;
+                        document.getElementById('status').style.color = '#4caf50';
+                    } catch (error) {
+                        document.getElementById('status').innerHTML =
+                            `✗ Error reading Excel file: ${error.message}`;
+                        document.getElementById('status').style.color = '#f44336';
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        });
+
+        function addName() {
+            const input = document.getElementById('nameInput');
+            const name = input.value.trim();
+
+            if (name === '') {
+                alert('Please enter a guest name');
+                return;
+            }
+
+            guestNames.push(name);
+            guestData.push({
+                employeeId: guestData.length + 1, // Auto-increment for manually added names
+                guestName: name
+            });
+            input.value = '';
+            updateGuestList();
+
+            document.getElementById('status').innerHTML =
+                `✓ Added "${name}". Total guests: ${guestNames.length}`;
+            document.getElementById('status').style.color = '#4caf50';
+        }
+
+        function removeName(index) {
+            const removedName = guestNames[index];
+            guestNames.splice(index, 1);
+            guestData.splice(index, 1);
+            updateGuestList();
+
+            document.getElementById('status').innerHTML =
+                `✓ Removed "${removedName}". Total guests: ${guestNames.length}`;
+            document.getElementById('status').style.color = '#4caf50';
+        }
+
+        function updateGuestList() {
+            const listContainer = document.getElementById('guestList');
+
+            if (guestNames.length === 0) {
+                listContainer.style.display = 'none';
+                return;
+            }
+
+            listContainer.style.display = 'block';
+            listContainer.innerHTML = guestNames.map((name, index) => `
+                <div class="guest-item">
+                    <span>${name}</span>
+                    <button class="remove-btn" onclick="removeName(${index})">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                addName();
+            }
+        }
+
+        function formatMixedFontName(name) {
+            // Split name into words
+            const words = name.split(' ');
+
+            // Format each word: first letter in Milton One, rest in Cormorant Light Italic
+            const formattedWords = words.map(word => {
+                if (word.length === 0) return '';
+                const firstLetter = word.charAt(0);
+                const restOfWord = word.substring(1);
+                return `<span class="name-capital">${firstLetter}</span><span class="name-lowercase">${restOfWord}</span>`;
+            });
+
+            return formattedWords.join(' ');
+        }
+
+        function generateInvitations() {
+            if (guestNames.length === 0) {
+                alert('Please upload a file or add guest names manually first!');
+                return;
+            }
+
+            const container = document.getElementById('invitationsContainer');
+            container.innerHTML = '';
+
+            guestNames.forEach((guestName, index) => {
+                const wrapper = createInvitationWrapper(guestName, index);
+                container.appendChild(wrapper);
+            });
+
+            document.getElementById('printBtn').style.display = 'inline-block';
+            document.getElementById('downloadAllBtn').style.display = 'inline-block';
+            document.getElementById('status').innerHTML =
+                `✓ Generated ${guestNames.length} invitations successfully!`;
+
+            // Scroll to first invitation
+            container.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function createInvitation(guestName) {
+            const div = document.createElement('div');
+            div.className = 'invitation';
+
+            // Format bride and groom names with mixed fonts
+            const brideName = formatMixedFontName('Nguyễn Thị Hải Anh');
+            const groomName = formatMixedFontName('Tạ Quang Thái');
+
+            div.innerHTML = `
+                <div class="invitation-photo-container">
+                    <img src="LJF00603.jpg" alt="Couple Photo" class="invitation-photo">
+                </div>
+                <div class="invitation-content">
+                    <div class="monogram"><img src="IMG_1984.JPG" alt="TA Monogram"></div>
+                    <div class="header-text">TRÂN TRỌNG KÍNH MỜI</div>
+                    <div class="guest-name">${guestName}</div>
+                    <hr class="divider">
+                    <div class="invitation-text">TỚI DỰ BỮA CƠM THÂN MẬT</div>
+                    <div class="invitation-text">MỪNG LỄ VU QUY CỦA HAI CON CHÚNG TÔI</div>
+
+                    <div class="couple-names">
+                        <div class="bride-name">${brideName}</div>
+                        <div class="ampersand">&</div>
+                        <div class="groom-name">${groomName}</div>
+                    </div>
+
+                    <div class="date-section">
+                        <div class="date-header">VÀO HỒI 11 GIỜ 00, THỨ BA</div>
+                        <div class="date-grid">
+                            <div class="date-item">
+                                <div class="date-label">NGÀY</div>
+                                <div class="date-value">20</div>
+                            </div>
+                            <div class="date-item">
+                                <div class="date-label">THÁNG</div>
+                                <div class="date-value">01</div>
+                            </div>
+                            <div class="date-item">
+                                <div class="date-label">NĂM</div>
+                                <div class="date-value">2026</div>
+                            </div>
+                        </div>
+                        <div class="date-subtext">TỨC NGÀY 02 THÁNG 12 NĂM ẤT TỴ</div>
+                    </div>
+
+                    <div class="venue-section">
+                        <div class="venue-label">TẠI TẦNG 2</div>
+                        <div class="venue-name">LONG VĨ PALACE</div>
+                        <div class="venue-address">SỐ 3A ĐÀO DUY ANH, ĐỐNG ĐA, HÀ NỘI</div>
+                    </div>
+
+                    <div class="parents-section">
+                        <div class="parent-group">
+                            <div class="parent-label">NHÀ GÁI</div>
+                            <div class="parent-name">ÔNG NGUYỄN VĂN LUẬN</div>
+                            <div class="parent-name">BÀ NGUYỄN THỊ MAI HƯƠNG</div>
+                        </div>
+                        <div class="parent-group">
+                            <div class="parent-label">NHÀ TRAI</div>
+                            <div class="parent-name">ÔNG TẠ QUANG SÁNG</div>
+                            <div class="parent-name">BÀ NGUYỄN PHƯƠNG DUNG</div>
+                        </div>
+                    </div>
+
+                    <div class="footer-text">RẤT HÂN HẠNH ĐƯỢC ĐÓN TIẾP!</div>
+                </div>
+            `;
+            return div;
+        }
+
+        function createInvitationWrapper(guestName, index) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'invitation-wrapper';
+
+            const invitation = createInvitation(guestName);
+            invitation.id = `invitation-${index}`;
+
+            const saveButtonContainer = document.createElement('div');
+            saveButtonContainer.className = 'save-btn-container';
+
+            const saveButton = document.createElement('button');
+            saveButton.className = 'save-image-btn';
+            saveButton.textContent = `💾 Save as Image`;
+            saveButton.onclick = () => saveAsImage(index, guestName);
+
+            saveButtonContainer.appendChild(saveButton);
+            wrapper.appendChild(invitation);
+            wrapper.appendChild(saveButtonContainer);
+
+            return wrapper;
+        }
+
+        function saveAsImage(index, guestName) {
+            const invitation = document.getElementById(`invitation-${index}`);
+            const button = event.target;
+
+            button.textContent = '⏳ Generating...';
+            button.disabled = true;
+
+            // Check if all images are loaded
+            const images = invitation.getElementsByTagName('img');
+            const imageLoadPromises = Array.from(images).map(img => {
+                if (img.complete) {
+                    return Promise.resolve();
+                }
+                return new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = reject;
+                });
+            });
+
+            Promise.all(imageLoadPromises).then(() => {
+                return html2canvas(invitation, {
+                    scale: 2,
+                    backgroundColor: '#ffffff',
+                    logging: false,
+                    useCORS: true,
+                    allowTaint: true
+                });
+            }).then(canvas => {
+                // Convert canvas to blob
+                canvas.toBlob(blob => {
+                    // Create download link
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    const fileName = `Wedding_Invitation_${guestName.replace(/\s+/g, '_')}.png`;
+
+                    link.href = url;
+                    link.download = fileName;
+                    link.click();
+
+                    // Clean up
+                    URL.revokeObjectURL(url);
+
+                    button.textContent = '💾 Save as Image';
+                    button.disabled = false;
+                }, 'image/png');
+            }).catch(error => {
+                console.error('Error generating image:', error);
+                alert('Error generating image: ' + error.message + '\n\nPlease make sure the logo image (IMG_1984.JPG) is in the same folder as this HTML file.');
+                button.textContent = '💾 Save as Image';
+                button.disabled = false;
+            });
+        }
+
+        async function downloadAllPDFs() {
+            if (guestData.length === 0) {
+                alert('Please generate invitations first!');
+                return;
+            }
+
+            const button = document.getElementById('downloadAllBtn');
+            const originalText = button.textContent;
+            button.disabled = true;
+            button.textContent = '⏳ Generating PDFs...';
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const zip = new JSZip();
+                const pdfFolder = zip.folder('pdf_letters');
+
+                const BATCH_SIZE = 10; // Process 10 invitations at a time
+                const totalBatches = Math.ceil(guestData.length / BATCH_SIZE);
+
+                for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
+                    const startIdx = batchIndex * BATCH_SIZE;
+                    const endIdx = Math.min(startIdx + BATCH_SIZE, guestData.length);
+
+                    button.textContent = `⏳ Batch ${batchIndex + 1}/${totalBatches}...`;
+
+                    for (let i = startIdx; i < endIdx; i++) {
+                        const guest = guestData[i];
+                        const invitation = document.getElementById(`invitation-${i}`);
+
+                        // Update progress
+                        document.getElementById('status').innerHTML =
+                            `Processing invitation ${i + 1} of ${guestData.length}...`;
+
+                        // Wait for images to load
+                        const images = invitation.getElementsByTagName('img');
+                        const imageLoadPromises = Array.from(images).map(img => {
+                            if (img.complete) return Promise.resolve();
+                            return new Promise((resolve, reject) => {
+                                img.onload = resolve;
+                                img.onerror = reject;
+                            });
+                        });
+                        await Promise.all(imageLoadPromises);
+
+                        // Convert to canvas with lower scale to save memory
+                        const canvas = await html2canvas(invitation, {
+                            scale: 1.5,  // Reduced from 2 to save memory
+                            logging: false,
+                            useCORS: true,
+                            allowTaint: true
+                        });
+
+                        // Convert canvas to PDF using JPEG for smaller size
+                        const imgData = canvas.toDataURL('image/jpeg', 0.92);
+                        const pdf = new jsPDF({
+                            orientation: 'landscape',
+                            unit: 'px',
+                            format: [canvas.width, canvas.height]
+                        });
+
+                        pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height);
+
+                        // Create filename: employeeId_damcuoiThaiAnh.pdf
+                        const employeeId = String(guest.employeeId).trim();
+                        const filename = `${employeeId}_damcuoiThaiAnh.pdf`;
+
+                        // Get department and sanitize for folder name
+                        const department = String(guest.department || 'Other')
+                            .trim()
+                            .replace(/[^a-zA-Z0-9_\u00C0-\u024F\u1E00-\u1EFF\s]/g, '')
+                            .replace(/\s+/g, '_');
+
+                        // Add to ZIP in department subfolder
+                        const pdfBlob = pdf.output('blob');
+                        const departmentFolder = pdfFolder.folder(department);
+                        departmentFolder.file(filename, pdfBlob);
+
+                        // Clean up canvas to free memory
+                        canvas.width = 0;
+                        canvas.height = 0;
+
+                        // Small delay
+                        await new Promise(resolve => setTimeout(resolve, 50));
+                    }
+
+                    // Longer delay between batches to allow garbage collection
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+
+                // Generate and download ZIP file
+                button.textContent = '⏳ Creating ZIP file...';
+                document.getElementById('status').innerHTML = 'Creating ZIP file...';
+
+                const zipBlob = await zip.generateAsync({ type: 'blob' });
+                saveAs(zipBlob, 'wedding_invitations.zip');
+
+                button.textContent = originalText;
+                button.disabled = false;
+                document.getElementById('status').innerHTML =
+                    `✓ Successfully downloaded ${guestData.length} invitations as PDF files!`;
+                document.getElementById('status').style.color = '#4caf50';
+
+            } catch (error) {
+                console.error('Error generating PDFs:', error);
+                alert('Error generating PDFs: ' + error.message);
+                button.textContent = originalText;
+                button.disabled = false;
+                document.getElementById('status').innerHTML =
+                    `✗ Error generating PDFs: ${error.message}`;
+                document.getElementById('status').style.color = '#f44336';
+            }
+        }
+    </script>
+</body>
+</html>

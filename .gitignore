@@ -1,0 +1,13 @@
+# Mac OS
+.DS_Store
+
+# Claude files
+.claude/
+
+# Generated files
+generated_invitations/
+*_with_invitations.xlsx
+
+# Temporary files
+*.tmp
+*.log
