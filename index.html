@@ -560,6 +560,232 @@
                 page-break-after: always;
             }
         }
+
+        /* Tablet breakpoint */
+        @media screen and (max-width: 1400px) {
+            .invitation {
+                width: 100%;
+                max-width: 1200px;
+                height: auto;
+                aspect-ratio: 1360 / 960;
+            }
+
+            .invitation-photo-container {
+                width: 50%;
+                height: auto;
+            }
+
+            .invitation-content {
+                width: 50%;
+            }
+        }
+
+        /* Mobile breakpoint */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 0;
+            }
+
+            .upload-section {
+                padding: 20px;
+            }
+
+            .upload-section h1 {
+                font-size: 24px;
+            }
+
+            .upload-area {
+                padding: 20px;
+            }
+
+            .btn {
+                width: 100%;
+                padding: 15px;
+                font-size: 14px;
+            }
+
+            .invitation {
+                width: 100%;
+                height: auto;
+                flex-direction: column;
+                max-width: 100%;
+            }
+
+            .invitation-photo-container {
+                width: 100%;
+                height: auto;
+                padding: 20px;
+                border-right: none;
+                border-bottom: 1px solid rgba(196, 181, 160, 0.3);
+                box-shadow: inset 0 -10px 20px -10px rgba(0, 0, 0, 0.05);
+            }
+
+            .invitation-photo {
+                max-height: 400px;
+                object-fit: contain;
+            }
+
+            .invitation-content {
+                width: 100%;
+                padding: 20px 15px;
+                box-shadow: inset 0 10px 20px -10px rgba(0, 0, 0, 0.03);
+            }
+
+            .monogram img {
+                width: 100px;
+            }
+
+            .header-text {
+                font-size: 10px;
+                letter-spacing: 2px;
+                margin-bottom: 10px;
+            }
+
+            .guest-name {
+                font-size: 20px;
+            }
+
+            .divider {
+                margin: 15px auto 15px auto;
+            }
+
+            .invitation-text {
+                font-size: 9px;
+                margin-bottom: 5px;
+            }
+
+            .couple-names {
+                margin: 8px 0;
+            }
+
+            .bride-name, .groom-name {
+                font-size: 28px;
+            }
+
+            .name-capital {
+                font-size: 1.2em;
+            }
+
+            .ampersand {
+                font-size: 24px;
+                gap: 10px;
+            }
+
+            .ampersand::before,
+            .ampersand::after {
+                width: 50px;
+            }
+
+            .date-header {
+                font-size: 9px;
+                letter-spacing: 1px;
+                margin-bottom: 8px;
+            }
+
+            .date-grid {
+                gap: 25px;
+                margin: 10px 0;
+            }
+
+            .date-item:not(:last-child)::after {
+                right: -13px;
+                height: 35px;
+            }
+
+            .date-label {
+                font-size: 9px;
+                letter-spacing: 2px;
+                margin-bottom: 6px;
+            }
+
+            .date-value {
+                font-size: 22px;
+            }
+
+            .date-subtext {
+                font-size: 8px;
+                margin-top: 10px;
+            }
+
+            .venue-section {
+                margin: 12px 0;
+            }
+
+            .venue-label {
+                font-size: 9px;
+            }
+
+            .venue-name {
+                font-size: 14px;
+                letter-spacing: 2px;
+            }
+
+            .venue-address {
+                font-size: 8px;
+            }
+
+            .parents-section {
+                margin: 12px 0;
+            }
+
+            .parent-label {
+                font-size: 9px;
+                letter-spacing: 2px;
+                margin-bottom: 6px;
+            }
+
+            .parent-name {
+                font-size: 9px;
+                letter-spacing: 0px;
+                line-height: 1.6;
+            }
+
+            .footer-text {
+                font-size: 9px;
+                letter-spacing: 1px;
+                margin-top: 15px;
+            }
+
+            .save-image-btn {
+                width: 100%;
+                padding: 15px;
+            }
+
+            .name-input-group {
+                flex-direction: column;
+            }
+
+            .guest-list {
+                max-height: 150px;
+            }
+        }
+
+        /* Small mobile breakpoint */
+        @media screen and (max-width: 480px) {
+            .upload-section h1 {
+                font-size: 20px;
+            }
+
+            .bride-name, .groom-name {
+                font-size: 24px;
+            }
+
+            .date-value {
+                font-size: 18px;
+            }
+
+            .venue-name {
+                font-size: 12px;
+            }
+
+            .monogram img {
+                width: 80px;
+            }
+        }
     </style>
 </head>
 <body>
