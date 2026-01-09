@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wedding Invitation Generator</title>
+    <title>Tạo Thiệp Mời Cưới</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Caveat:wght@400;500;600;700&family=Comic+Neue:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Cormorant+Garamond:wght@300;400;500;600&family=Great+Vibes&family=Handlee&family=Just+Another+Hand&family=Patrick+Hand&family=Patrick+Hand+SC&family=Playfair+Display:wght@400;500;600&family=Solitreo&display=swap" rel="stylesheet">
@@ -1058,7 +1058,7 @@
             listContainer.innerHTML = guestNames.map((name, index) => `
                 <div class="guest-item">
                     <span>${name}</span>
-                    <button class="remove-btn" onclick="removeName(${index})">Remove</button>
+                    <button class="remove-btn" onclick="removeName(${index})">Xóa</button>
                 </div>
             `).join('');
         }
@@ -1075,7 +1075,7 @@
         }
 
         function getRenderScale() {
-            return 2.5;
+            return 2;
         }
 
         function getRenderWindowSize() {
@@ -1227,7 +1227,7 @@
 
             const saveButton = document.createElement('button');
             saveButton.className = 'save-image-btn';
-            saveButton.textContent = `💾 Save as Image`;
+            saveButton.textContent = `💾 Lưu dưới dạng hình ảnh`;
             saveButton.onclick = () => saveAsImage(index, guestName);
 
             saveButtonContainer.appendChild(saveButton);
@@ -1319,22 +1319,22 @@
                 }, 'image/png');
             }).catch(error => {
                 console.error('Error generating image:', error);
-                alert('Error generating image: ' + error.message + '\n\nPlease make sure the logo image (IMG_1984.JPG) is in the same folder as this HTML file.');
-                button.textContent = '💾 Save as Image';
+                alert('Lỗi khi tạo hình ảnh: ' + error.message + '\n\nVui lòng đảm bảo file logo (IMG_1984.JPG) nằm cùng thư mục với file HTML này.');
+                button.textContent = '💾 Lưu dưới dạng hình ảnh';
                 button.disabled = false;
             });
         }
 
         async function downloadAllPDFs() {
             if (guestData.length === 0) {
-                alert('Please generate invitations first!');
+                alert('Vui lòng tạo thiệp mời trước!');
                 return;
             }
 
             const button = document.getElementById('downloadAllBtn');
             const originalText = button.textContent;
             button.disabled = true;
-            button.textContent = '⏳ Generating PDFs...';
+            button.textContent = '⏳ Đang tạo PDF...';
 
             try {
                 const { jsPDF } = window.jspdf;
@@ -1348,7 +1348,7 @@
                     const startIdx = batchIndex * BATCH_SIZE;
                     const endIdx = Math.min(startIdx + BATCH_SIZE, guestData.length);
 
-                    button.textContent = `⏳ Batch ${batchIndex + 1}/${totalBatches}...`;
+                    button.textContent = `⏳ Lô ${batchIndex + 1}/${totalBatches}...`;
 
                     for (let i = startIdx; i < endIdx; i++) {
                         const guest = guestData[i];
@@ -1356,7 +1356,7 @@
 
                         // Update progress
                         document.getElementById('status').innerHTML =
-                            `Processing invitation ${i + 1} of ${guestData.length}...`;
+                            `Đang xử lý thiệp ${i + 1} / ${guestData.length}...`;
 
                         // Wait for images to load
                         const images = invitation.getElementsByTagName('img');
@@ -1419,8 +1419,8 @@
                 }
 
                 // Generate and download ZIP file
-                button.textContent = '⏳ Creating ZIP file...';
-                document.getElementById('status').innerHTML = 'Creating ZIP file...';
+                button.textContent = '⏳ Đang tạo file ZIP...';
+                document.getElementById('status').innerHTML = 'Đang tạo file ZIP...';
 
                 const zipBlob = await zip.generateAsync({ type: 'blob' });
                 saveAs(zipBlob, 'wedding_invitations.zip');
@@ -1428,16 +1428,16 @@
                 button.textContent = originalText;
                 button.disabled = false;
                 document.getElementById('status').innerHTML =
-                    `✓ Successfully downloaded ${guestData.length} invitations as PDF files!`;
+                    `✓ Đã tải thành công ${guestData.length} thiệp mời dưới dạng PDF!`;
                 document.getElementById('status').style.color = '#4caf50';
 
             } catch (error) {
                 console.error('Error generating PDFs:', error);
-                alert('Error generating PDFs: ' + error.message);
+                alert('Lỗi khi tạo PDF: ' + error.message);
                 button.textContent = originalText;
                 button.disabled = false;
                 document.getElementById('status').innerHTML =
-                    `✗ Error generating PDFs: ${error.message}`;
+                    `✗ Lỗi khi tạo PDF: ${error.message}`;
                 document.getElementById('status').style.color = '#f44336';
             }
         }
