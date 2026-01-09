@@ -772,6 +772,14 @@
             .guest-list {
                 max-height: 150px;
             }
+
+            /* Hide buttons on mobile since PDFs auto-download */
+            .btn[onclick="generateInvitations()"],
+            .btn[onclick="window.print()"],
+            .btn[onclick="downloadAllPDFs()"],
+            .save-image-btn {
+                display: none !important;
+            }
         }
 
         /* Small mobile breakpoint */
@@ -801,35 +809,35 @@
 <body>
     <div class="container">
         <div class="upload-section">
-            <h1>Wedding Invitation Generator</h1>
+            <h1>Tạo Thiệp Mời Cưới</h1>
 
             <div class="instruction">
-                <strong>Instructions:</strong> Upload an Excel (.xlsx, .xls) or CSV file with guest names in the "Kính gửi" column, or manually enter guest names below.
+                <strong>Hướng dẫn:</strong> Tải lên file Excel (.xlsx, .xls) hoặc CSV với tên khách mời trong cột "Kính gửi", hoặc nhập tên thủ công bên dưới.
             </div>
 
             <div class="upload-area" onclick="document.getElementById('fileInput').click()">
                 <p style="font-size: 48px; margin-bottom: 10px;">📄</p>
-                <p>Click to upload Excel or CSV file</p>
+                <p>Nhấn để tải lên file Excel hoặc CSV</p>
                 <input type="file" id="fileInput" accept=".xlsx, .xls, .csv">
             </div>
 
-            <div class="or-divider">OR</div>
+            <div class="or-divider">HOẶC</div>
 
             <div class="manual-entry">
-                <h3>Manually Add Guest Names</h3>
+                <h3>Nhập Tên Khách Mời Thủ Công</h3>
                 <div class="name-input-group">
-                    <input type="text" id="nameInput" placeholder="Enter guest name (e.g., Ông Bà Nguyễn Văn An)" onkeypress="handleKeyPress(event)">
-                    <button class="btn" onclick="addName()" style="margin-top: 0;">Add Name</button>
+                    <input type="text" id="nameInput" placeholder="Nhập tên khách mời (ví dụ: Ông Bà Nguyễn Văn An)" onkeypress="handleKeyPress(event)">
+                    <button class="btn" onclick="addName()" style="margin-top: 0;">Tạo Thiệp</button>
                 </div>
                 <div class="guest-list" id="guestList" style="display: none;">
-                    <!-- Guest names will appear here -->
+                    <!-- Danh sách khách mời sẽ hiển thị ở đây -->
                 </div>
             </div>
 
             <div style="text-align: center;">
-                <button class="btn" onclick="generateInvitations()">Generate Invitations</button>
-                <button class="btn" onclick="window.print()" style="margin-left: 10px; display: none;" id="printBtn">Print All Invitations</button>
-                <button class="btn" onclick="downloadAllPDFs()" style="margin-left: 10px; display: none; background: #4caf50;" id="downloadAllBtn">📥 Download All PDFs</button>
+                <button class="btn" onclick="generateInvitations()">Tạo Tất Cả Thiệp</button>
+                <button class="btn" onclick="window.print()" style="margin-left: 10px; display: none;" id="printBtn">In Tất Cả Thiệp</button>
+                <button class="btn" onclick="downloadAllPDFs()" style="margin-left: 10px; display: none; background: #4caf50;" id="downloadAllBtn">📥 Tải Tất Cả PDF</button>
             </div>
 
             <div id="status" style="margin-top: 20px; text-align: center; color: #666;"></div>
@@ -897,11 +905,11 @@
 
                         updateGuestList();
                         document.getElementById('status').innerHTML =
-                            `✓ CSV file loaded successfully! Found ${guestNames.length} guest names.`;
+                            `✓ Đã tải file CSV thành công! Tìm thấy ${guestNames.length} tên khách mời.`;
                         document.getElementById('status').style.color = '#4caf50';
                     } catch (error) {
                         document.getElementById('status').innerHTML =
-                            `✗ Error reading CSV file: ${error.message}`;
+                            `✗ Lỗi khi đọc file CSV: ${error.message}`;
                         document.getElementById('status').style.color = '#f44336';
                     }
                 };
@@ -970,11 +978,11 @@
 
                         updateGuestList();
                         document.getElementById('status').innerHTML =
-                            `✓ Excel file loaded successfully! Found ${guestNames.length} guest names.`;
+                            `✓ Đã tải file Excel thành công! Tìm thấy ${guestNames.length} tên khách mời.`;
                         document.getElementById('status').style.color = '#4caf50';
                     } catch (error) {
                         document.getElementById('status').innerHTML =
-                            `✗ Error reading Excel file: ${error.message}`;
+                            `✗ Lỗi khi đọc file Excel: ${error.message}`;
                         document.getElementById('status').style.color = '#f44336';
                     }
                 };
@@ -987,7 +995,7 @@
             const name = input.value.trim();
 
             if (name === '') {
-                alert('Please enter a guest name');
+                alert('Vui lòng nhập tên khách mời');
                 return;
             }
 
@@ -1002,17 +1010,27 @@
             updateGuestList();
 
             document.getElementById('status').innerHTML =
-                `✓ Added "${name}". Generating PDF...`;
+                `✓ Đã thêm "${name}". Đang tạo PDF...`;
             document.getElementById('status').style.color = '#4caf50';
 
             appendInvitation(name, newIndex);
             document.getElementById('printBtn').style.display = 'inline-block';
             document.getElementById('downloadAllBtn').style.display = 'inline-block';
 
-            downloadSinglePDF(newIndex, guestData[newIndex]).catch(error => {
+            downloadSinglePDF(newIndex, guestData[newIndex]).then(() => {
+                // Clear arrays and invitation display after successful PDF generation
+                guestNames = [];
+                guestData = [];
+                document.getElementById('invitationsContainer').innerHTML = '';
+                updateGuestList();
+
+                document.getElementById('status').innerHTML =
+                    `✓ Đã tải PDF cho "${name}". Sẵn sàng cho khách tiếp theo.`;
+                document.getElementById('status').style.color = '#4caf50';
+            }).catch(error => {
                 console.error('Error generating PDF:', error);
                 document.getElementById('status').innerHTML =
-                    `✗ Error generating PDF: ${error.message}`;
+                    `✗ Lỗi khi tạo PDF: ${error.message}`;
                 document.getElementById('status').style.color = '#f44336';
             });
         }
@@ -1024,7 +1042,7 @@
             updateGuestList();
 
             document.getElementById('status').innerHTML =
-                `✓ Removed "${removedName}". Total guests: ${guestNames.length}`;
+                `✓ Đã xóa "${removedName}". Tổng số khách: ${guestNames.length}`;
             document.getElementById('status').style.color = '#4caf50';
         }
 
@@ -1057,7 +1075,7 @@
         }
 
         function getRenderScale() {
-            return isMobileDevice() ? 1.2 : 2;
+            return 2.5;
         }
 
         function getRenderWindowSize() {
@@ -1104,7 +1122,7 @@
 
         function generateInvitations() {
             if (guestNames.length === 0) {
-                alert('Please upload a file or add guest names manually first!');
+                alert('Vui lòng tải lên file hoặc nhập tên khách mời trước!');
                 return;
             }
 
@@ -1119,7 +1137,7 @@
             document.getElementById('printBtn').style.display = 'inline-block';
             document.getElementById('downloadAllBtn').style.display = 'inline-block';
             document.getElementById('status').innerHTML =
-                `✓ Generated ${guestNames.length} invitations successfully!`;
+                `✓ Đã tạo ${guestNames.length} thiệp mời thành công!`;
 
             // Scroll to first invitation
             container.scrollIntoView({ behavior: 'smooth' });
@@ -1261,7 +1279,7 @@
             canvas.height = 0;
 
             document.getElementById('status').innerHTML =
-                `✓ Downloaded PDF for "${guest.guestName}"`;
+                `✓ Đã tải PDF cho "${guest.guestName}"`;
             document.getElementById('status').style.color = '#4caf50';
         }
 
