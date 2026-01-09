@@ -324,19 +324,20 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 45px;
+            gap: 0;
             margin: 15px 0;
         }
 
         .date-item {
             text-align: center;
             position: relative;
+            padding: 0 22px;
         }
 
         .date-item:not(:last-child)::after {
             content: '';
             position: absolute;
-            right: -23px;
+            right: 0;
             width: 2px;
             top: 6px;
             bottom: 6px;
@@ -1142,12 +1143,12 @@
                     <div class="guest-name">${guestName}</div>
                     <hr class="divider">
                     <div class="invitation-text">TỚI DỰ BỮA CƠM THÂN MẬT</div>
-                    <div class="invitation-text">MỪNG LỄ THÀNH HÔN CỦA HAI CON CHÚNG TÔI</div>
+                    <div class="invitation-text">MỪNG LỄ VU QUY CỦA HAI CON CHÚNG TÔI</div>
 
                     <div class="couple-names">
-                        <div class="groom-name">${groomName}</div>
-                        <div class="ampersand">&</div>
                         <div class="bride-name">${brideName}</div>
+                        <div class="ampersand">&</div>
+                        <div class="groom-name">${groomName}</div>
                     </div>
 
                     <div class="date-section">
@@ -1176,15 +1177,16 @@
                     </div>
 
                     <div class="parents-section">
-                        <div class="parent-group">
-                            <div class="parent-label">NHÀ TRAI</div>
-                            <div class="parent-name">ÔNG TẠ QUANG SÁNG</div>
-                            <div class="parent-name">BÀ NGUYỄN PHƯƠNG DUNG</div>
-                        </div>
+
                         <div class="parent-group">
                             <div class="parent-label">NHÀ GÁI</div>
                             <div class="parent-name">ÔNG NGUYỄN VĂN LUẬN</div>
                             <div class="parent-name">BÀ NGUYỄN THỊ MAI HƯƠNG</div>
+                        </div>
+                        <div class="parent-group">
+                            <div class="parent-label">NHÀ TRAI</div>
+                            <div class="parent-name">ÔNG TẠ QUANG SÁNG</div>
+                            <div class="parent-name">BÀ NGUYỄN PHƯƠNG DUNG</div>
                         </div>
 
                     </div>
