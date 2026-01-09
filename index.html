@@ -337,11 +337,10 @@
             content: '';
             position: absolute;
             right: -23px;
-            top: 50%;
-            transform: translateY(-50%);
             width: 2px;
-            height: 50px;
-            background: black
+            top: 6px;
+            bottom: 6px;
+            background: black;
         }
 
         .date-label {
@@ -687,13 +686,23 @@
             }
 
             .date-grid {
-                gap: 25px;
+                gap: 20px;
                 margin: 10px 0;
             }
 
+            .date-item {
+                padding: 0 12px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .date-item:not(:last-child) {
+                border-right: 2px solid black;
+            }
+
             .date-item:not(:last-child)::after {
-                right: -13px;
-                height: 35px;
+                display: none;
             }
 
             .date-label {
@@ -984,14 +993,27 @@
             guestNames.push(name);
             guestData.push({
                 employeeId: guestData.length + 1, // Auto-increment for manually added names
-                guestName: name
+                guestName: name,
+                department: 'Manual'
             });
+            const newIndex = guestNames.length - 1;
             input.value = '';
             updateGuestList();
 
             document.getElementById('status').innerHTML =
-                `✓ Added "${name}". Total guests: ${guestNames.length}`;
+                `✓ Added "${name}". Generating PDF...`;
             document.getElementById('status').style.color = '#4caf50';
+
+            appendInvitation(name, newIndex);
+            document.getElementById('printBtn').style.display = 'inline-block';
+            document.getElementById('downloadAllBtn').style.display = 'inline-block';
+
+            downloadSinglePDF(newIndex, guestData[newIndex]).catch(error => {
+                console.error('Error generating PDF:', error);
+                document.getElementById('status').innerHTML =
+                    `✗ Error generating PDF: ${error.message}`;
+                document.getElementById('status').style.color = '#f44336';
+            });
         }
 
         function removeName(index) {
@@ -1026,6 +1048,42 @@
             if (event.key === 'Enter') {
                 addName();
             }
+        }
+
+        function isMobileDevice() {
+            return window.matchMedia('(max-width: 768px)').matches ||
+                /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        }
+
+        function getRenderScale() {
+            return isMobileDevice() ? 1.2 : 2;
+        }
+
+        function getRenderWindowSize() {
+            return {
+                windowWidth: 1600,
+                windowHeight: 1000
+            };
+        }
+
+        function waitForImagesToLoad(invitation) {
+            const images = invitation.getElementsByTagName('img');
+            const imageLoadPromises = Array.from(images).map(img => {
+                if (img.complete) {
+                    return Promise.resolve();
+                }
+                return new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = reject;
+                });
+            });
+            return Promise.all(imageLoadPromises);
+        }
+
+        function appendInvitation(guestName, index) {
+            const container = document.getElementById('invitationsContainer');
+            const wrapper = createInvitationWrapper(guestName, index);
+            container.appendChild(wrapper);
         }
 
         function formatMixedFontName(name) {
@@ -1084,12 +1142,12 @@
                     <div class="guest-name">${guestName}</div>
                     <hr class="divider">
                     <div class="invitation-text">TỚI DỰ BỮA CƠM THÂN MẬT</div>
-                    <div class="invitation-text">MỪNG LỄ VU QUY CỦA HAI CON CHÚNG TÔI</div>
+                    <div class="invitation-text">MỪNG LỄ THÀNH HÔN CỦA HAI CON CHÚNG TÔI</div>
 
                     <div class="couple-names">
-                        <div class="bride-name">${brideName}</div>
-                        <div class="ampersand">&</div>
                         <div class="groom-name">${groomName}</div>
+                        <div class="ampersand">&</div>
+                        <div class="bride-name">${brideName}</div>
                     </div>
 
                     <div class="date-section">
@@ -1119,15 +1177,16 @@
 
                     <div class="parents-section">
                         <div class="parent-group">
-                            <div class="parent-label">NHÀ GÁI</div>
-                            <div class="parent-name">ÔNG NGUYỄN VĂN LUẬN</div>
-                            <div class="parent-name">BÀ NGUYỄN THỊ MAI HƯƠNG</div>
-                        </div>
-                        <div class="parent-group">
                             <div class="parent-label">NHÀ TRAI</div>
                             <div class="parent-name">ÔNG TẠ QUANG SÁNG</div>
                             <div class="parent-name">BÀ NGUYỄN PHƯƠNG DUNG</div>
                         </div>
+                        <div class="parent-group">
+                            <div class="parent-label">NHÀ GÁI</div>
+                            <div class="parent-name">ÔNG NGUYỄN VĂN LUẬN</div>
+                            <div class="parent-name">BÀ NGUYỄN THỊ MAI HƯƠNG</div>
+                        </div>
+
                     </div>
 
                     <div class="footer-text">RẤT HÂN HẠNH ĐƯỢC ĐÓN TIẾP!</div>
@@ -1158,6 +1217,52 @@
             return wrapper;
         }
 
+        async function downloadSinglePDF(index, guest) {
+            const invitation = document.getElementById(`invitation-${index}`);
+            if (!invitation) {
+                throw new Error('Invitation not found');
+            }
+
+            await waitForImagesToLoad(invitation);
+            if (document.fonts && document.fonts.ready) {
+                await document.fonts.ready;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const canvas = await html2canvas(invitation, {
+                scale: getRenderScale(),
+                backgroundColor: '#ffffff',
+                logging: false,
+                useCORS: true,
+                allowTaint: true,
+                ...getRenderWindowSize()
+            });
+
+            const imgData = canvas.toDataURL('image/jpeg', 0.92);
+            const pdf = new jsPDF({
+                orientation: 'landscape',
+                unit: 'px',
+                format: [canvas.width, canvas.height]
+            });
+
+            pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height);
+
+            const sanitizedName = String(guest.guestName)
+                .trim()
+                .replace(/[^a-zA-Z0-9_\u00C0-\u024F\u1E00-\u1EFF\s]/g, '')
+                .replace(/\s+/g, '_');
+            const filename = `${sanitizedName}_damcuoithaianh.pdf`;
+            const pdfBlob = pdf.output('blob');
+            saveAs(pdfBlob, filename);
+
+            canvas.width = 0;
+            canvas.height = 0;
+
+            document.getElementById('status').innerHTML =
+                `✓ Downloaded PDF for "${guest.guestName}"`;
+            document.getElementById('status').style.color = '#4caf50';
+        }
+
         function saveAsImage(index, guestName) {
             const invitation = document.getElementById(`invitation-${index}`);
             const button = event.target;
@@ -1166,20 +1271,9 @@
             button.disabled = true;
 
             // Check if all images are loaded
-            const images = invitation.getElementsByTagName('img');
-            const imageLoadPromises = Array.from(images).map(img => {
-                if (img.complete) {
-                    return Promise.resolve();
-                }
-                return new Promise((resolve, reject) => {
-                    img.onload = resolve;
-                    img.onerror = reject;
-                });
-            });
-
-            Promise.all(imageLoadPromises).then(() => {
+            waitForImagesToLoad(invitation).then(() => {
                 return html2canvas(invitation, {
-                    scale: 2,
+                    scale: getRenderScale(),
                     backgroundColor: '#ffffff',
                     logging: false,
                     useCORS: true,
@@ -1191,7 +1285,7 @@
                     // Create download link
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
-                    const fileName = `Wedding_Invitation_${guestName.replace(/\s+/g, '_')}.png`;
+                    const fileName = `Wedding_Invitation_${guestName.replace(/\s+/g, '_')}.jpg`;
 
                     link.href = url;
                     link.download = fileName;
@@ -1260,7 +1354,8 @@
                             scale: 1.5,  // Reduced from 2 to save memory
                             logging: false,
                             useCORS: true,
-                            allowTaint: true
+                            allowTaint: true,
+                            ...getRenderWindowSize()
                         });
 
                         // Convert canvas to PDF using JPEG for smaller size
@@ -1273,9 +1368,12 @@
 
                         pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height);
 
-                        // Create filename: employeeId_damcuoiThaiAnh.pdf
-                        const employeeId = String(guest.employeeId).trim();
-                        const filename = `${employeeId}_damcuoiThaiAnh.pdf`;
+                        // Create filename: guestname_damcuoithaianh.pdf
+                        const sanitizedName = String(guest.guestName)
+                            .trim()
+                            .replace(/[^a-zA-Z0-9_\u00C0-\u024F\u1E00-\u1EFF\s]/g, '')
+                            .replace(/\s+/g, '_');
+                        const filename = `${sanitizedName}_damcuoithaianh.pdf`;
 
                         // Get department and sanitize for folder name
                         const department = String(guest.department || 'Other')
