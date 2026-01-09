@@ -544,6 +544,103 @@
             right: 0;
         }
 
+        /* Fullscreen modal for viewing invitation */
+        .fullscreen-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .fullscreen-modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .fullscreen-modal-content {
+            position: relative;
+            max-width: 95%;
+            max-height: 95%;
+            margin: auto;
+        }
+
+        .fullscreen-modal-content img {
+            width: 100%;
+            height: auto;
+            display: block;
+            touch-action: pinch-zoom;
+        }
+
+        .fullscreen-close {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 10001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .fullscreen-close:hover {
+            background: white;
+        }
+
+        .invitation-clickable {
+            cursor: pointer;
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        .invitation-clickable:hover {
+            transform: scale(1.02);
+        }
+
+        .invitation-clickable::after {
+            content: '👆 Nhấn để xem toàn màn hình';
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-family: 'Be Vietnam Pro', sans-serif;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        @media screen and (max-width: 768px) {
+            .invitation-clickable::after {
+                opacity: 0.8;
+                animation: fadeInOut 3s ease-in-out infinite;
+            }
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 0.8; }
+        }
+
         @media print {
             body {
                 background: white;
@@ -558,6 +655,10 @@
                 box-shadow: none;
                 margin: 0;
                 page-break-after: always;
+            }
+
+            .fullscreen-modal {
+                display: none !important;
             }
         }
 
@@ -845,6 +946,14 @@
 
         <div class="invitations-container" id="invitationsContainer">
             <!-- Invitations will be generated here -->
+        </div>
+    </div>
+
+    <!-- Fullscreen modal for viewing invitation -->
+    <div id="fullscreenModal" class="fullscreen-modal">
+        <button class="fullscreen-close" onclick="closeFullscreen()">✕</button>
+        <div class="fullscreen-modal-content">
+            <img id="fullscreenImage" src="" alt="Invitation Preview">
         </div>
     </div>
 
@@ -1221,6 +1330,15 @@
 
             const invitation = createInvitation(guestName);
             invitation.id = `invitation-${index}`;
+            invitation.classList.add('invitation-clickable');
+
+            // Make invitation clickable to view fullscreen
+            invitation.addEventListener('click', () => {
+                openFullscreen(invitation);
+            });
+
+            // Add hover hint text
+            invitation.title = 'Nhấn để xem toàn màn hình';
 
             const saveButtonContainer = document.createElement('div');
             saveButtonContainer.className = 'save-btn-container';
@@ -1274,53 +1392,15 @@
             const filename = `${sanitizedName}_damcuoithaianh.pdf`;
             const pdfBlob = pdf.output('blob');
 
-            // For mobile devices with Web Share API support, use native sharing
-            if (isMobileDevice() && navigator.share && navigator.canShare) {
-                try {
-                    // Convert blob to File object for proper sharing
-                    const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
-
-                    // Check if we can share this file
-                    if (navigator.canShare({ files: [pdfFile] })) {
-                        await navigator.share({
-                            files: [pdfFile],
-                            title: 'Thiệp Mời Cưới',
-                            text: `Thiệp mời cưới cho ${guest.guestName}`
-                        });
-
-                        document.getElementById('status').innerHTML =
-                            `✓ Đã chia sẻ PDF cho "${guest.guestName}"`;
-                        document.getElementById('status').style.color = '#4caf50';
-                    } else {
-                        // Fallback to download
-                        saveAs(pdfBlob, filename);
-                        document.getElementById('status').innerHTML =
-                            `✓ Đã tải PDF cho "${guest.guestName}"`;
-                        document.getElementById('status').style.color = '#4caf50';
-                    }
-                } catch (error) {
-                    // If sharing fails or user cancels, download instead
-                    if (error.name !== 'AbortError') {
-                        saveAs(pdfBlob, filename);
-                        document.getElementById('status').innerHTML =
-                            `✓ Đã tải PDF cho "${guest.guestName}"`;
-                        document.getElementById('status').style.color = '#4caf50';
-                    } else {
-                        document.getElementById('status').innerHTML =
-                            `Đã hủy chia sẻ`;
-                        document.getElementById('status').style.color = '#999';
-                    }
-                }
-            } else {
-                // Desktop or browsers without share API - use regular download
-                saveAs(pdfBlob, filename);
-                document.getElementById('status').innerHTML =
-                    `✓ Đã tải PDF cho "${guest.guestName}"`;
-                document.getElementById('status').style.color = '#4caf50';
-            }
+            // Always download the file normally - user can share from Files app after reviewing
+            saveAs(pdfBlob, filename);
 
             canvas.width = 0;
             canvas.height = 0;
+
+            document.getElementById('status').innerHTML =
+                `✓ Đã tải PDF cho "${guest.guestName}"`;
+            document.getElementById('status').style.color = '#4caf50';
         }
 
         function saveAsImage(index, guestName) {
@@ -1341,38 +1421,10 @@
                 });
             }).then(canvas => {
                 // Convert canvas to blob
-                canvas.toBlob(async (blob) => {
+                canvas.toBlob((blob) => {
                     const fileName = `Thiep_Moi_Cuoi_${guestName.replace(/\s+/g, '_')}.png`;
 
-                    // For mobile devices with Web Share API support, use native sharing
-                    if (isMobileDevice() && navigator.share && navigator.canShare) {
-                        try {
-                            // Convert blob to File object for proper sharing
-                            const imageFile = new File([blob], fileName, { type: 'image/png' });
-
-                            // Check if we can share this file
-                            if (navigator.canShare({ files: [imageFile] })) {
-                                await navigator.share({
-                                    files: [imageFile],
-                                    title: 'Thiệp Mời Cưới',
-                                    text: `Thiệp mời cưới cho ${guestName}`
-                                });
-
-                                button.textContent = '💾 Lưu dưới dạng hình ảnh';
-                                button.disabled = false;
-                                return;
-                            }
-                        } catch (error) {
-                            // If sharing fails or user cancels, fall through to download
-                            if (error.name === 'AbortError') {
-                                button.textContent = '💾 Lưu dưới dạng hình ảnh';
-                                button.disabled = false;
-                                return;
-                            }
-                        }
-                    }
-
-                    // Fallback: Create download link
+                    // Download the file - user can share from Photos/Files app after reviewing
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     link.href = url;
@@ -1509,6 +1561,58 @@
                 document.getElementById('status').style.color = '#f44336';
             }
         }
+
+        // Fullscreen modal functions
+        function openFullscreen(invitationElement) {
+            const modal = document.getElementById('fullscreenModal');
+            const fullscreenImage = document.getElementById('fullscreenImage');
+
+            // Show loading state
+            fullscreenImage.src = '';
+            modal.classList.add('active');
+
+            // Convert invitation to image for fullscreen viewing
+            html2canvas(invitationElement, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                logging: false,
+                useCORS: true,
+                allowTaint: true,
+                ...getRenderWindowSize()
+            }).then(canvas => {
+                const imageData = canvas.toDataURL('image/png', 1.0);
+                fullscreenImage.src = imageData;
+
+                // Clean up canvas
+                canvas.width = 0;
+                canvas.height = 0;
+            }).catch(error => {
+                console.error('Error generating fullscreen preview:', error);
+                closeFullscreen();
+                alert('Lỗi khi hiển thị xem trước');
+            });
+        }
+
+        function closeFullscreen() {
+            const modal = document.getElementById('fullscreenModal');
+            const fullscreenImage = document.getElementById('fullscreenImage');
+            modal.classList.remove('active');
+            fullscreenImage.src = '';
+        }
+
+        // Close modal when clicking outside the image
+        document.getElementById('fullscreenModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeFullscreen();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeFullscreen();
+            }
+        });
     </script>
 </body>
 </html>
