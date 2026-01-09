@@ -1273,21 +1273,61 @@
                 .replace(/\s+/g, '_');
             const filename = `${sanitizedName}_damcuoithaianh.pdf`;
             const pdfBlob = pdf.output('blob');
-            saveAs(pdfBlob, filename);
+
+            // For mobile devices with Web Share API support, use native sharing
+            if (isMobileDevice() && navigator.share && navigator.canShare) {
+                try {
+                    // Convert blob to File object for proper sharing
+                    const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
+
+                    // Check if we can share this file
+                    if (navigator.canShare({ files: [pdfFile] })) {
+                        await navigator.share({
+                            files: [pdfFile],
+                            title: 'Thiệp Mời Cưới',
+                            text: `Thiệp mời cưới cho ${guest.guestName}`
+                        });
+
+                        document.getElementById('status').innerHTML =
+                            `✓ Đã chia sẻ PDF cho "${guest.guestName}"`;
+                        document.getElementById('status').style.color = '#4caf50';
+                    } else {
+                        // Fallback to download
+                        saveAs(pdfBlob, filename);
+                        document.getElementById('status').innerHTML =
+                            `✓ Đã tải PDF cho "${guest.guestName}"`;
+                        document.getElementById('status').style.color = '#4caf50';
+                    }
+                } catch (error) {
+                    // If sharing fails or user cancels, download instead
+                    if (error.name !== 'AbortError') {
+                        saveAs(pdfBlob, filename);
+                        document.getElementById('status').innerHTML =
+                            `✓ Đã tải PDF cho "${guest.guestName}"`;
+                        document.getElementById('status').style.color = '#4caf50';
+                    } else {
+                        document.getElementById('status').innerHTML =
+                            `Đã hủy chia sẻ`;
+                        document.getElementById('status').style.color = '#999';
+                    }
+                }
+            } else {
+                // Desktop or browsers without share API - use regular download
+                saveAs(pdfBlob, filename);
+                document.getElementById('status').innerHTML =
+                    `✓ Đã tải PDF cho "${guest.guestName}"`;
+                document.getElementById('status').style.color = '#4caf50';
+            }
 
             canvas.width = 0;
             canvas.height = 0;
-
-            document.getElementById('status').innerHTML =
-                `✓ Đã tải PDF cho "${guest.guestName}"`;
-            document.getElementById('status').style.color = '#4caf50';
         }
 
         function saveAsImage(index, guestName) {
             const invitation = document.getElementById(`invitation-${index}`);
             const button = event.target;
 
-            button.textContent = '⏳ Generating...';
+            button.textContent = '⏳ Đang tạo...';
             button.disabled = true;
 
             // Check if all images are loaded
@@ -1301,12 +1341,40 @@
                 });
             }).then(canvas => {
                 // Convert canvas to blob
-                canvas.toBlob(blob => {
-                    // Create download link
+                canvas.toBlob(async (blob) => {
+                    const fileName = `Thiep_Moi_Cuoi_${guestName.replace(/\s+/g, '_')}.png`;
+
+                    // For mobile devices with Web Share API support, use native sharing
+                    if (isMobileDevice() && navigator.share && navigator.canShare) {
+                        try {
+                            // Convert blob to File object for proper sharing
+                            const imageFile = new File([blob], fileName, { type: 'image/png' });
+
+                            // Check if we can share this file
+                            if (navigator.canShare({ files: [imageFile] })) {
+                                await navigator.share({
+                                    files: [imageFile],
+                                    title: 'Thiệp Mời Cưới',
+                                    text: `Thiệp mời cưới cho ${guestName}`
+                                });
+
+                                button.textContent = '💾 Lưu dưới dạng hình ảnh';
+                                button.disabled = false;
+                                return;
+                            }
+                        } catch (error) {
+                            // If sharing fails or user cancels, fall through to download
+                            if (error.name === 'AbortError') {
+                                button.textContent = '💾 Lưu dưới dạng hình ảnh';
+                                button.disabled = false;
+                                return;
+                            }
+                        }
+                    }
+
+                    // Fallback: Create download link
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
-                    const fileName = `Wedding_Invitation_${guestName.replace(/\s+/g, '_')}.jpg`;
-
                     link.href = url;
                     link.download = fileName;
                     link.click();
@@ -1314,7 +1382,7 @@
                     // Clean up
                     URL.revokeObjectURL(url);
 
-                    button.textContent = '💾 Save as Image';
+                    button.textContent = '💾 Lưu dưới dạng hình ảnh';
                     button.disabled = false;
                 }, 'image/png');
             }).catch(error => {
