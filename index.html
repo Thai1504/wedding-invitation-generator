@@ -862,8 +862,15 @@
             }
 
             .save-image-btn {
-                width: 100%;
+                width: 48%;
                 padding: 15px;
+                margin: 0 1%;
+            }
+
+            .save-btn-container {
+                display: flex;
+                justify-content: center;
+                gap: 0;
             }
 
             .name-input-group {
@@ -874,11 +881,30 @@
                 max-height: 150px;
             }
 
-            /* Hide buttons on mobile since PDFs auto-download */
+            /* Version selection on mobile */
+            .version-selection {
+                margin-bottom: 15px !important;
+                padding: 10px !important;
+            }
+
+            .version-selection h4 {
+                font-size: 12px !important;
+                margin-bottom: 8px !important;
+            }
+
+            .version-selection label {
+                font-size: 12px;
+            }
+
+            .version-selection input[type="radio"] {
+                width: 16px;
+                height: 16px;
+            }
+
+            /* Hide bulk action buttons on mobile */
             .btn[onclick="generateInvitations()"],
             .btn[onclick="window.print()"],
-            .btn[onclick="downloadAllPDFs()"],
-            .save-image-btn {
+            .btn[onclick="downloadAllPDFs()"] {
                 display: none !important;
             }
         }
@@ -926,6 +952,30 @@
 
             <div class="manual-entry">
                 <h3>Nhập Tên Khách Mời Thủ Công</h3>
+
+                <!-- Version selection -->
+                <div class="version-selection" style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 4px;">
+                    <h4 style="margin-bottom: 10px; color: #8b9dc3; font-size: 14px;">Chọn Loại Thiệp:</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="radio" name="invitationVersion" value="nha-gai" checked style="margin-right: 8px;">
+                            <span>Nhà Gái (Lễ Vu Quy)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="radio" name="invitationVersion" value="nha-trai" style="margin-right: 8px;">
+                            <span>Nhà Trai (Lễ Thành Hôn)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="radio" name="invitationVersion" value="ban-co-dau" style="margin-right: 8px;">
+                            <span>Bạn Hải Anh</span>
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="radio" name="invitationVersion" value="ban-chu-re" style="margin-right: 8px;">
+                            <span>Bạn Thái</span>
+                        </label>
+                    </div>
+                </div>
+
                 <div class="name-input-group">
                     <input type="text" id="nameInput" placeholder="Nhập tên khách mời (ví dụ: Ông Bà Nguyễn Văn An)" onkeypress="handleKeyPress(event)">
                     <button class="btn" onclick="addName()" style="margin-top: 0;">Tạo Thiệp</button>
@@ -1108,40 +1158,47 @@
                 return;
             }
 
+            // Get selected version from radio buttons
+            const selectedVersion = document.querySelector('input[name="invitationVersion"]:checked').value;
+
+            // Clear previous data and invitation
+            guestNames = [];
+            guestData = [];
+            document.getElementById('invitationsContainer').innerHTML = '';
+
+            // Add new guest
             guestNames.push(name);
             guestData.push({
-                employeeId: guestData.length + 1, // Auto-increment for manually added names
+                employeeId: 1,
                 guestName: name,
-                department: 'Manual'
+                department: 'Manual',
+                version: selectedVersion
             });
-            const newIndex = guestNames.length - 1;
+            const newIndex = 0;
             input.value = '';
             updateGuestList();
 
             document.getElementById('status').innerHTML =
-                `✓ Đã thêm "${name}". Đang tạo PDF...`;
+                `✓ Đang tạo thiệp cho "${name}"...`;
             document.getElementById('status').style.color = '#4caf50';
 
-            appendInvitation(name, newIndex);
+            // Show invitation on screen with selected version
+            appendInvitation(name, newIndex, selectedVersion);
             document.getElementById('printBtn').style.display = 'inline-block';
             document.getElementById('downloadAllBtn').style.display = 'inline-block';
 
-            downloadSinglePDF(newIndex, guestData[newIndex]).then(() => {
-                // Clear arrays and invitation display after successful PDF generation
-                guestNames = [];
-                guestData = [];
-                document.getElementById('invitationsContainer').innerHTML = '';
-                updateGuestList();
+            // Update status
+            document.getElementById('status').innerHTML =
+                `✓ Đã tạo thiệp cho "${name}". Nhấn vào thiệp để xem toàn màn hình.`;
+            document.getElementById('status').style.color = '#4caf50';
 
-                document.getElementById('status').innerHTML =
-                    `✓ Đã tải PDF cho "${name}". Sẵn sàng cho khách tiếp theo.`;
-                document.getElementById('status').style.color = '#4caf50';
-            }).catch(error => {
-                console.error('Error generating PDF:', error);
-                document.getElementById('status').innerHTML =
-                    `✗ Lỗi khi tạo PDF: ${error.message}`;
-                document.getElementById('status').style.color = '#f44336';
-            });
+            // Scroll to show the invitation
+            setTimeout(() => {
+                document.getElementById('invitationsContainer').scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 100);
         }
 
         function removeName(index) {
@@ -1208,9 +1265,9 @@
             return Promise.all(imageLoadPromises);
         }
 
-        function appendInvitation(guestName, index) {
+        function appendInvitation(guestName, index, version = 'nha-gai') {
             const container = document.getElementById('invitationsContainer');
-            const wrapper = createInvitationWrapper(guestName, index);
+            const wrapper = createInvitationWrapper(guestName, index, version);
             container.appendChild(wrapper);
         }
 
@@ -1252,13 +1309,93 @@
             container.scrollIntoView({ behavior: 'smooth' });
         }
 
-        function createInvitation(guestName) {
+        function createInvitation(guestName, version = 'nha-gai') {
             const div = document.createElement('div');
             div.className = 'invitation';
 
             // Format bride and groom names with mixed fonts
             const brideName = formatMixedFontName('Nguyễn Thị Hải Anh');
             const groomName = formatMixedFontName('Tạ Quang Thái');
+
+            // Determine content based on version
+            let ceremonyText, firstNameHtml, secondNameHtml, firstParent, secondParent;
+
+            switch(version) {
+                case 'nha-trai':
+                    // Nhà trai: Lễ Thành Hôn, chú rể trước, nhà trai trước
+                    ceremonyText = 'MỪNG LỄ THÀNH HÔN CỦA HAI CON CHÚNG TÔI';
+                    firstNameHtml = `<div class="groom-name">${groomName}</div>`;
+                    secondNameHtml = `<div class="bride-name">${brideName}</div>`;
+                    firstParent = `
+                        <div class="parent-group">
+                            <div class="parent-label">NHÀ TRAI</div>
+                            <div class="parent-name">ÔNG TẠ QUANG SÁNG</div>
+                            <div class="parent-name">BÀ NGUYỄN PHƯƠNG DUNG</div>
+                        </div>`;
+                    secondParent = `
+                        <div class="parent-group">
+                            <div class="parent-label">NHÀ GÁI</div>
+                            <div class="parent-name">ÔNG NGUYỄN VĂN LUẬN</div>
+                            <div class="parent-name">BÀ NGUYỄN THỊ MAI HƯƠNG</div>
+                        </div>`;
+                    break;
+
+                case 'ban-co-dau':
+                    // Bạn cô dâu: giống nhà gái nhưng "hai chúng tôi"
+                    ceremonyText = 'MỪNG LỄ THÀNH HÔN CỦA HAI CHÚNG TÔI';
+                    firstNameHtml = `<div class="bride-name">${brideName}</div>`;
+                    secondNameHtml = `<div class="groom-name">${groomName}</div>`;
+                    firstParent = `
+                        <div class="parent-group">
+                            <div class="parent-label">NHÀ GÁI</div>
+                            <div class="parent-name">ÔNG NGUYỄN VĂN LUẬN</div>
+                            <div class="parent-name">BÀ NGUYỄN THỊ MAI HƯƠNG</div>
+                        </div>`;
+                    secondParent = `
+                        <div class="parent-group">
+                            <div class="parent-label">NHÀ TRAI</div>
+                            <div class="parent-name">ÔNG TẠ QUANG SÁNG</div>
+                            <div class="parent-name">BÀ NGUYỄN PHƯƠNG DUNG</div>
+                        </div>`;
+                    break;
+
+                case 'ban-chu-re':
+                    // Bạn chú rể: giống nhà trai nhưng "hai chúng tôi"
+                    ceremonyText = 'MỪNG LỄ THÀNH HÔN CỦA HAI CHÚNG TÔI';
+                    firstNameHtml = `<div class="groom-name">${groomName}</div>`;
+                    secondNameHtml = `<div class="bride-name">${brideName}</div>`;
+                    firstParent = `
+                        <div class="parent-group">
+                            <div class="parent-label">NHÀ TRAI</div>
+                            <div class="parent-name">ÔNG TẠ QUANG SÁNG</div>
+                            <div class="parent-name">BÀ NGUYỄN PHƯƠNG DUNG</div>
+                        </div>`;
+                    secondParent = `
+                        <div class="parent-group">
+                            <div class="parent-label">NHÀ GÁI</div>
+                            <div class="parent-name">ÔNG NGUYỄN VĂN LUẬN</div>
+                            <div class="parent-name">BÀ NGUYỄN THỊ MAI HƯƠNG</div>
+                        </div>`;
+                    break;
+
+                default: // 'nha-gai'
+                    // Nhà gái (default): Lễ Thành Hôn, cô dâu trước, nhà gái trước
+                    ceremonyText = 'MỪNG LỄ THÀNH HÔN CỦA HAI CON CHÚNG TÔI';
+                    firstNameHtml = `<div class="bride-name">${brideName}</div>`;
+                    secondNameHtml = `<div class="groom-name">${groomName}</div>`;
+                    firstParent = `
+                        <div class="parent-group">
+                            <div class="parent-label">NHÀ GÁI</div>
+                            <div class="parent-name">ÔNG NGUYỄN VĂN LUẬN</div>
+                            <div class="parent-name">BÀ NGUYỄN THỊ MAI HƯƠNG</div>
+                        </div>`;
+                    secondParent = `
+                        <div class="parent-group">
+                            <div class="parent-label">NHÀ TRAI</div>
+                            <div class="parent-name">ÔNG TẠ QUANG SÁNG</div>
+                            <div class="parent-name">BÀ NGUYỄN PHƯƠNG DUNG</div>
+                        </div>`;
+            }
 
             div.innerHTML = `
                 <div class="invitation-photo-container">
@@ -1270,12 +1407,12 @@
                     <div class="guest-name">${guestName}</div>
                     <hr class="divider">
                     <div class="invitation-text">TỚI DỰ BỮA CƠM THÂN MẬT</div>
-                    <div class="invitation-text">MỪNG LỄ VU QUY CỦA HAI CON CHÚNG TÔI</div>
+                    <div class="invitation-text">${ceremonyText}</div>
 
                     <div class="couple-names">
-                        <div class="bride-name">${brideName}</div>
+                        ${firstNameHtml}
                         <div class="ampersand">&</div>
-                        <div class="groom-name">${groomName}</div>
+                        ${secondNameHtml}
                     </div>
 
                     <div class="date-section">
@@ -1304,18 +1441,8 @@
                     </div>
 
                     <div class="parents-section">
-
-                        <div class="parent-group">
-                            <div class="parent-label">NHÀ GÁI</div>
-                            <div class="parent-name">ÔNG NGUYỄN VĂN LUẬN</div>
-                            <div class="parent-name">BÀ NGUYỄN THỊ MAI HƯƠNG</div>
-                        </div>
-                        <div class="parent-group">
-                            <div class="parent-label">NHÀ TRAI</div>
-                            <div class="parent-name">ÔNG TẠ QUANG SÁNG</div>
-                            <div class="parent-name">BÀ NGUYỄN PHƯƠNG DUNG</div>
-                        </div>
-
+                        ${firstParent}
+                        ${secondParent}
                     </div>
 
                     <div class="footer-text">RẤT HÂN HẠNH ĐƯỢC ĐÓN TIẾP!</div>
@@ -1324,11 +1451,11 @@
             return div;
         }
 
-        function createInvitationWrapper(guestName, index) {
+        function createInvitationWrapper(guestName, index, version = 'nha-gai') {
             const wrapper = document.createElement('div');
             wrapper.className = 'invitation-wrapper';
 
-            const invitation = createInvitation(guestName);
+            const invitation = createInvitation(guestName, version);
             invitation.id = `invitation-${index}`;
             invitation.classList.add('invitation-clickable');
 
@@ -1343,11 +1470,31 @@
             const saveButtonContainer = document.createElement('div');
             saveButtonContainer.className = 'save-btn-container';
 
+            // Add PDF download button
+            const pdfButton = document.createElement('button');
+            pdfButton.className = 'save-image-btn';
+            pdfButton.style.background = '#4caf50';
+            pdfButton.style.marginRight = '10px';
+            pdfButton.textContent = `📥 Tải PDF`;
+            pdfButton.onclick = async () => {
+                const originalText = pdfButton.textContent;
+                pdfButton.textContent = '⏳ Đang tạo...';
+                pdfButton.disabled = true;
+                try {
+                    await downloadSinglePDF(index, guestData[index]);
+                } finally {
+                    pdfButton.textContent = originalText;
+                    pdfButton.disabled = false;
+                }
+            };
+
+            // Add image save button
             const saveButton = document.createElement('button');
             saveButton.className = 'save-image-btn';
-            saveButton.textContent = `💾 Lưu dưới dạng hình ảnh`;
+            saveButton.textContent = `💾 Lưu Hình Ảnh`;
             saveButton.onclick = () => saveAsImage(index, guestName);
 
+            saveButtonContainer.appendChild(pdfButton);
             saveButtonContainer.appendChild(saveButton);
             wrapper.appendChild(invitation);
             wrapper.appendChild(saveButtonContainer);
@@ -1422,7 +1569,7 @@
             }).then(canvas => {
                 // Convert canvas to blob
                 canvas.toBlob((blob) => {
-                    const fileName = `Thiep_Moi_Cuoi_${guestName.replace(/\s+/g, '_')}.png`;
+                    const fileName = `Thiep_Moi_Cuoi_${guestName.replace(/\s+/g, '_')}.jpg`;
 
                     // Download the file - user can share from Photos/Files app after reviewing
                     const url = URL.createObjectURL(blob);
@@ -1436,7 +1583,7 @@
 
                     button.textContent = '💾 Lưu dưới dạng hình ảnh';
                     button.disabled = false;
-                }, 'image/png');
+                }, 'image/jpeg');
             }).catch(error => {
                 console.error('Error generating image:', error);
                 alert('Lỗi khi tạo hình ảnh: ' + error.message + '\n\nVui lòng đảm bảo file logo (IMG_1984.JPG) nằm cùng thư mục với file HTML này.');
@@ -1580,7 +1727,7 @@
                 allowTaint: true,
                 ...getRenderWindowSize()
             }).then(canvas => {
-                const imageData = canvas.toDataURL('image/png', 1.0);
+                const imageData = canvas.toDataURL('image/jpeg', 2.0);
                 fullscreenImage.src = imageData;
 
                 // Clean up canvas
