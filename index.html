@@ -1317,6 +1317,14 @@
             const brideName = formatMixedFontName('Nguyễn Thị Hải Anh');
             const groomName = formatMixedFontName('Tạ Quang Thái');
 
+            // Determine photo based on version
+            let photoSrc;
+            if (version === 'ban-co-dau' || version === 'ban-chu-re') {
+                photoSrc = 'Anhcuoimp.jpg'; // For friends
+            } else {
+                photoSrc = 'LJF00603.jpg'; // For family (nha-gai, nha-trai)
+            }
+
             // Determine content based on version
             let ceremonyText, firstNameHtml, secondNameHtml, firstParent, secondParent;
 
@@ -1399,7 +1407,7 @@
 
             div.innerHTML = `
                 <div class="invitation-photo-container">
-                    <img src="LJF00603.jpg" alt="Couple Photo" class="invitation-photo">
+                    <img src="${photoSrc}" alt="Couple Photo" class="invitation-photo">
                 </div>
                 <div class="invitation-content">
                     <div class="monogram"><img src="IMG_1984.JPG" alt="TA Monogram"></div>
